@@ -16,7 +16,8 @@ M=U_scale'*RN*U_scale;
 M=(M+M')/2;
 
 
-[D,EIG_VALUE_sub_vector]=eig(M);
+[D,EIG_VALUES]=eig(M);
+EIG_VALUE_sub_vector=diag(EIG_VALUES);
 
 c=D'*(sqrt(cg_diag).*alpha);
 
