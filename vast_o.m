@@ -13,37 +13,38 @@ mu=newton_root_power(f,g,x0);
 conFilter=U_part*([1./(EIG_VALUE_sub_vector+mu)].*c);
 
 end
-function [Q,D] = jdiag(A, B, evaOption)
-% Joint diagonalization function JDIAG
-% JDIAG returns the eigenvectors and the eigenvalues from Aq = dBq
-% where q is an eigenvector and d is an eigenvalue, respectively.
-% Both are in a range of 1 <= d, q <= dim(A or B).
-% Q gives you the joint diagonalization property such that inv(B)*A*Q = Q*D
-%                                Q'*A*Q = D
-%                                Q'*B*Q = I
-% where 
-%   I is the identity matrix, 
+function [U,D] = jdiag(A, B, evaOption)
+% JDIAG    Joint diagonalization function
+%  [U,D] = JDIAG(A, B, evaOption)
+% JDIAG returns the eigenvectors and the eigenvalues from Au = dBu
+% where u is an eigenvector and d is an eigenvalue, respectively.
+% Both are in a range of 1 <= d, u <= dim(A or B).
+% U gives you the joint diagonalization property such that inv(B)*A*U = U*D
+%                                U'*A*U = D
+%                                U'*B*U = I
+% where
+%   I is the identity matrix,
 %   D is the diagonal matrix whose elements are the eigenvalues
 %     (typically in descending order),
-%   Q is the eigenvector matrix corresponding to D,
+%   U is the eigenvector matrix corresponding to D,
 %
 % and this has a relationship described as follows:
-%           diag(Q'*A*Q) = diag(Qeve'*A*Qeve)./diag(Qeve'*B*Qeve)
+%           diag(U'*A*U) = diag(Ueve'*A*Ueve)./diag(Ueve'*B*Ueve)
 %
-% Although this gives you a similar solution from [Qeve,Qeva] = eig(B\A),
+% Although this gives you a similar solution from [Ueve,Ueva] = eig(B\A),
 % the order of the eigenvalues can be different from each other.
-% 
+%
 % JDIAG input arguments:
 % A                              - a (semi) positive definite matrix
 % B                              - a positive definite matrix
 % evaOption                      - 'vector' returns D as a vector, diag(D)
 %                                - 'matrix' returns D as a diag. matrix
-% 
+%
 % Latest update   :     21st/October-2019
 % Taewoong Lee (tlee at create.aau.dk)
 %
 % This was modified from the code 'jeig.m' provided in the following book:
-%  [1] J. Benesty, M. G. Christensen, and J. R. Jensen, 
+%  [1] J. Benesty, M. G. Christensen, and J. R. Jensen,
 %    Signal enhancement with variable span linear filters. Springer, 2016.
 %
 %  DOI: 10.1007/978-981-287-739-0
@@ -53,22 +54,22 @@ function [Q,D] = jdiag(A, B, evaOption)
 %  rng default
 %  A = full(sprandsym(3,1,[3 4 5]));
 %  B = full(sprandsym(3,1,[10 20 30]));
-%  [Q,D] = JDIAG(A,B);
+%  [U,D] = JDIAG(A,B);
 %
-% Q'*A*Q                                Q'*B*Q
-% ans =                                 ans = 
+% U'*A*U                                U'*B*U
+% ans =                                 ans =
 %     0.4313    0.0000   -0.0000            1.0000    0.0000   -0.0000
 %     0.0000    0.1662   -0.0000            0.0000    1.0000   -0.0000
 %    -0.0000   -0.0000    0.1395           -0.0000   -0.0000    1.0000
-% 
-% [Qeve,Qeva] = eig(B\A);
-% Qeve'*A*Qeve                          Qeve'*B*Qeve
+%
+% [Ueve,Ueva] = eig(B\A);
+% Ueve'*A*Ueve                          Ueve'*B*Ueve
 % ans =                                 ans =
 %     4.4291   -0.0000   -0.0000           10.2682    0.0000   -0.0000
 %    -0.0000    3.2703   -0.0000            0.0000   19.6714   -0.0000
 %    -0.0000    0.0000    3.9718           -0.0000   -0.0000   28.4816
 %
-% diag(Qeve'*A*Qeve)./diag(Qeve'*B*Qeve)
+% diag(Ueve'*A*Ueve)./diag(Ueve'*B*Ueve)
 % ans =
 %     0.4313
 %     0.1662
@@ -82,21 +83,21 @@ end
 argname = char(inputname(2));
 
 if pd ~= 0
-    error(['Matrix ',argname,' is NOT a positive definite.']);
+    error(['Matrix ', argname ,' seems NOT a positive definite.']);
 elseif pd == 0
     % Matrix B is a Positive definite.
-    C = Bc\A/transpose(Bc);   % C = inv(Bc)*A*inv(transpose(Bc))
+    C = Bc\A/Bc';           % C = inv(Bc)*A*inv(conjugate transpose(Bc))
     [U,T] = schur(C);
-    X = transpose(Bc)\U;
-    
+    X = Bc'\U;              % X = inv(conjugate transpose(Bc))*U;
+
     [dd,dind] = sort(diag(T),'descend');
     D = diag(dd);
-    Q = X(:,dind);
+    U = X(:,dind);
 end
 
 switch lower(evaOption)
     case 'vector'
-        D = diag(D);
+        D = dd;
     otherwise
 end
 
